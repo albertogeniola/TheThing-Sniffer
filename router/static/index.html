@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-1.12.0.min.js"></script>
+    <script type="text/javascript">
+
+        function dataUpdate(){
+            $.get("/sniffers", function(data){
+                // Update info
+                for(var mac in data){
+                    var sniffer = data[mac];
+                    updateSniffer(sniffer);
+                    $("#lasttime").text((new Date()).toTimeString());
+                }
+            });
+        }
+
+        function remove() {
+            var $el = $(this);
+            var mac = $el.attr("data-mac");
+            $el.attr("disabled","disabled");
+            $.ajax({
+                url:"/sniffers/"+mac,
+                method:"DELETE",
+                success:function(){
+                    var id = mac.replace(/:/g,"_");
+                    $("#"+id).remove();
+                }
+            }).always(function(){
+                    $el.removeAttr("disabled");
+                });
+
+        }
+
+        function action() {
+            var $el = $(this);
+            var action=$el.attr("data-action");
+            var mac = $el.attr("data-mac");
+            $el.attr("disabled","disabled");
+            $.get("/manager/"+mac+"/"+action)
+                .always(function(){
+                    $el.removeAttr("disabled");
+                });
+
+        }
+
+        function updateSniffer(sniffer){
+            var id = sniffer.mac.replace(/:/g,"_");
+            var $sniffer = $("#"+id);
+
+            if ($sniffer.length == 0) {
+                // Create the element, it is not present
+                $sniffer = $("<div />");
+                $sniffer.attr('id',id).addClass("sniffer");
+
+                for (var prop in sniffer) {
+                    var val_id = id+"_"+prop;
+                    var name = prop;
+                    var value = sniffer[name];
+
+                    var $label=$("<span />").text(name+ ": ");
+                    var $value=$("<span />").attr('id',val_id);
+
+                    var $row = $("<div />").addClass("row");
+                    $row.append($label).append($value).appendTo($sniffer);
+                }
+
+                var $row = $("<div/>").addClass("row");
+                var $start = $("<button/>").text("Start").click(action).attr('data-mac',sniffer.mac).attr("data-action","start");
+                var $stop = $("<button/>").text("Stop").click(action).attr('data-mac',sniffer.mac).attr("data-action","stop");
+                var $download = $("<button/>").text("Download").click(action).attr('data-mac',sniffer.mac).attr("data-action","collect");
+                var $delete = $("<button/>").text("Delete").click(remove).attr('data-mac',sniffer.mac);
+
+                $row.append($start).append($download).append($stop).append($delete);
+                $sniffer.append($row);
+
+                $("#sniffers").append($sniffer);
+            }
+
+            for (var kprop in sniffer) {
+                var kval_id = id + "_" + kprop;
+
+                $("#"+kval_id).text(sniffer[kprop]);
+
+            }
+
+        }
+
+        $(function(){
+            window.setInterval(dataUpdate,1000);
+        });
+    </script>
+    <style>
+        .sniffer {
+            min-height: 150px;
+            display:block;
+            margin:30px;
+            border:1px solid #ccc;
+            background-color: #efefef;
+            border-radius: 5px;
+            box-shadow: 10px 10px 10px #333;
+            padding:5px;
+            padding-left:160px;
+            background: url(sniff.png) no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <h3>Sniffing status</h3>
+    <p>Last update: <span id="lasttime"></span></p>
+    <div id="sniffers"></div>
+
+</body>
+</html>

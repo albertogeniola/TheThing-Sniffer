@@ -1,0 +1,15 @@
+/var/log/analyzer.log {
+    missingok
+    notifempty
+    size 30k
+    yearly
+    create 0600 root root
+}
+
+/var/log/analyzer.err {
+    missingok
+    notifempty
+    size 30k
+    yearly
+    create 0600 root root
+}

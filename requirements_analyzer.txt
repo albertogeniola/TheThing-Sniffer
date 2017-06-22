@@ -1,0 +1,5 @@
+python-magic
+patool
+ssdeep
+mitmproxy>=0.18.1,<1
+pyOpenSSL
